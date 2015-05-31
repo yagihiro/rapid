@@ -14,7 +14,7 @@ class Server {
   bool stopped() const;
 
  private:
-  constexpr int kUndefinedPort = 0;
+  static constexpr int kUndefinedPort = 0;
 
   int _port = kUndefinedPort;
   bool _stop_requested = false;
