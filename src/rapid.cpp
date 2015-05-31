@@ -15,7 +15,7 @@ void Server::set_port(int port) { _port = port; }
 void Server::run() {
   assert(_port != kUndefinedPort);
 
-  std::async(std::launch::async, [&] {
+  std::async(std::launch::deferred, [&] {
     _stopped = false;
 
     auto sock = socket(AF_INET, SOCK_STREAM, 0);
