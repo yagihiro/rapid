@@ -1,7 +1,9 @@
 #include <cassert>
+#include <cstring>
 #include <thread>
 #include <netinet/in.h>
 #include <rapid/rapid.h>
+#include <string>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -19,6 +21,8 @@ void Server::run() {
     _stopped = false;
 
     auto sock = socket(AF_INET, SOCK_STREAM, 0);
+    int flag = 1;
+    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof(flag));
 
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
@@ -33,7 +37,18 @@ void Server::run() {
       auto len = sizeof(client_addr);
       auto peer =
           accept(sock, (struct sockaddr*)&client_addr, (socklen_t*)&len);
-      write(peer, "HELLO", 5);
+
+      std::string body = "HELLO\r\n";
+      char buf[2048];
+      std::memset(buf, 0, sizeof(buf));
+      std::sprintf(buf,
+                   "HTTP/1.0 200 OK\r\n"
+                   "Content-Length: %d\r\n"
+                   "Content-Type: text/html\r\n"
+                   "\r\n"
+                   "%s",
+                   static_cast<int>(body.size()), body.c_str());
+      write(peer, buf, std::strlen(buf));
       close(peer);
     }
 
