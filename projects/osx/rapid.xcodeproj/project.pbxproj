@@ -7,10 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9B052C041B50D86A00FF457C /* route.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9B052C031B50D86A00FF457C /* route.cpp */; };
+		9B052C061B50E0C600FF457C /* request.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9B052C051B50E0C600FF457C /* request.cpp */; };
+		9B052C081B50E28A00FF457C /* routing_dispatcher.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9B052C071B50E28A00FF457C /* routing_dispatcher.cpp */; };
 		9B4B0D3D1B1AF10E009F6DD2 /* rapid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9B4B0D3C1B1AF10E009F6DD2 /* rapid.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		9B052C031B50D86A00FF457C /* route.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = route.cpp; sourceTree = "<group>"; };
+		9B052C051B50E0C600FF457C /* request.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = request.cpp; sourceTree = "<group>"; };
+		9B052C071B50E28A00FF457C /* routing_dispatcher.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = routing_dispatcher.cpp; sourceTree = "<group>"; };
 		9B4B0D3C1B1AF10E009F6DD2 /* rapid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = rapid.cpp; sourceTree = "<group>"; };
 		9B5FB1D61B0CE8E50058ADB7 /* librapid.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = librapid.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B5FB1DD1B0CEA660058ADB7 /* include */ = {isa = PBXFileReference; lastKnownFileType = folder; name = include; path = ../../include; sourceTree = "<group>"; };
@@ -31,6 +37,9 @@
 			isa = PBXGroup;
 			children = (
 				9B4B0D3C1B1AF10E009F6DD2 /* rapid.cpp */,
+				9B052C051B50E0C600FF457C /* request.cpp */,
+				9B052C031B50D86A00FF457C /* route.cpp */,
+				9B052C071B50E28A00FF457C /* routing_dispatcher.cpp */,
 			);
 			name = src;
 			path = ../../src;
@@ -120,6 +129,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				9B4B0D3D1B1AF10E009F6DD2 /* rapid.cpp in Sources */,
+				9B052C081B50E28A00FF457C /* routing_dispatcher.cpp in Sources */,
+				9B052C061B50E0C600FF457C /* request.cpp in Sources */,
+				9B052C041B50D86A00FF457C /* route.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

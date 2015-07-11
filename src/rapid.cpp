@@ -29,15 +29,22 @@ void Server::run() {
     addr.sin_port = htons(_port);
     addr.sin_addr.s_addr = INADDR_ANY;
     addr.sin_len = sizeof(addr);
-    bind(sock, (struct sockaddr*)&addr, sizeof(addr));
+    bind(sock, (struct sockaddr *)&addr, sizeof(addr));
     listen(sock, 5);
 
     while (!_stop_requested) {
       struct sockaddr_in client_addr;
       auto len = sizeof(client_addr);
       auto peer =
-          accept(sock, (struct sockaddr*)&client_addr, (socklen_t*)&len);
+          accept(sock, (struct sockaddr *)&client_addr, (socklen_t *)&len);
 
+      char inbuf[4096];
+      auto inlen = recv(peer, inbuf, sizeof(inbuf), 0);
+      inbuf[inlen] = '\0';
+
+      Request request(inbuf);
+      _dispatcher.dispatch(request);
+      
       std::string body = "HELLO\r\n";
       char buf[2048];
       std::memset(buf, 0, sizeof(buf));
@@ -63,4 +70,12 @@ void Server::run() {
 void Server::stop() { _stop_requested = true; }
 
 bool Server::stopped() const { return _stopped; }
+
+void Server::get(const std::string &pattern, const Handler &handler) {
+  _dispatcher.add(Route(Method::Get, pattern, handler));
+}
+
+void Server::post(const std::string &pattern, const Handler &handler) {
+  _dispatcher.add(Route(Method::Post, pattern, handler));
+}
 }
