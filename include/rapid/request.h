@@ -11,6 +11,7 @@ class Request {
   Method method() const { return _method; }
 
  private:
-  Method _method;
+  Method _method = Method::Get;
+  std::string _request_uri;
 };
 }
