@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
 
   rapid::Server server;
   server.set_port(8080);
-  server.get("/", [](rapid::Request &req) -> rapid::Response {
+  server.get("/", [](const rapid::Request &req) -> rapid::Response {
     return rapid::Response();
   });
   server.run();

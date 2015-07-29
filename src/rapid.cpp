@@ -43,8 +43,8 @@ void Server::run() {
       inbuf[inlen] = '\0';
 
       Request request(inbuf);
-      _dispatcher.dispatch(request);
-      
+      Response response = _dispatcher.dispatch(request);
+
       std::string body = "HELLO\r\n";
       char buf[2048];
       std::memset(buf, 0, sizeof(buf));

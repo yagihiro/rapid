@@ -8,5 +8,5 @@ namespace rapid {
 /**
  * Routing handler type
  */
-using Handler = std::function<Response(Request &)>;
+using Handler = std::function<Response(const Request &)>;
 }
