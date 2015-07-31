@@ -43,19 +43,22 @@ void Server::run() {
       inbuf[inlen] = '\0';
 
       Request request(inbuf);
-      Response response = _dispatcher.dispatch(request);
+      auto response = _dispatcher.dispatch(request);
 
-      std::string body = "HELLO\r\n";
-      char buf[2048];
-      std::memset(buf, 0, sizeof(buf));
-      std::sprintf(buf,
-                   "HTTP/1.0 200 OK\r\n"
-                   "Content-Length: %d\r\n"
-                   "Content-Type: text/html\r\n"
-                   "\r\n"
-                   "%s",
-                   static_cast<int>(body.size()), body.c_str());
-      write(peer, buf, std::strlen(buf));
+      auto response_s = response->message();
+      write(peer, response_s->c_str(), response_s->size());
+
+      //      std::string body = "HELLO\r\n";
+      //      char buf[2048];
+      //      std::memset(buf, 0, sizeof(buf));
+      //      std::sprintf(buf,
+      //                   "HTTP/1.0 200 OK\r\n"
+      //                   "Content-Length: %d\r\n"
+      //                   "Content-Type: text/html\r\n"
+      //                   "\r\n"
+      //                   "%s",
+      //                   static_cast<int>(body.size()), body.c_str());
+      //      write(peer, buf, std::strlen(buf));
       close(peer);
     }
 

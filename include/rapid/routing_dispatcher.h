@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <string>
 #include <vector>
 #include "request.h"
@@ -13,7 +14,7 @@ class RoutingDispatcher {
 
   void add(Route &&route);
 
-  Response dispatch(const Request &request);
+  std::shared_ptr<Response> dispatch(const Request &request);
 
  private:
   std::vector<Route> _routes;
