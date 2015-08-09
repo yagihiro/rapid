@@ -68,6 +68,10 @@ std::shared_ptr<std::string> Response::message() const {
   } else {
     stream << "Content-Type: application/json" << _crlf;
   }
+  for (auto &h : _headers) {
+    if (h.first == "Content-Type") continue;
+    stream << h.first << ": " << h.second << _crlf;
+  }
   stream << _crlf;
   stream << _body;
 
