@@ -98,7 +98,7 @@
 		9B5FB1CE1B0CE8E50058ADB7 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0630;
+				LastUpgradeCheck = 0640;
 				ORGANIZATIONNAME = yagihiro.net;
 				TargetAttributes = {
 					9B5FB1D51B0CE8E50058ADB7 = {
@@ -225,6 +225,7 @@
 		9B5FB1DB1B0CE8E50058ADB7 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -233,6 +234,7 @@
 		9B5FB1DC1B0CE8E50058ADB7 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
