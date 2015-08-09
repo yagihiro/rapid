@@ -8,29 +8,22 @@ namespace rapid {
 
 class Response {
  public:
-  Response() {}
+  Response();
 
-  static Response not_found() {
-    // TODO
-    return Response();
-  }
+  static Response not_found();
 
-  std::shared_ptr<std::string> message() const {
-    return std::make_shared<std::string>();
-  }
+  std::shared_ptr<std::string> message() const;
 
-  void set_status_code(int code) { _status = code; }
+  void set_status_code(int code);
 
-  void set_headers(const std::map<std::string, std::string> &headers) {
-    _headers = headers;
-  }
+  void set_headers(const std::map<std::string, std::string> &headers);
 
-  void set_body(const std::vector<std::string> &body) { _body = body; }
+  void set_body(const std::string &body);
 
  private:
   int _status = 404;
   std::map<std::string, std::string> _headers;
-  std::vector<std::string> _body;
+  std::string _body;
 };
 
 using ResponsePtr = std::shared_ptr<Response>;

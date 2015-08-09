@@ -21,9 +21,9 @@ int main(int argc, char *argv[]) {
 
     response.set_status_code(200);
     response.set_headers({{"Content-Type", "application/json"}});
-    response.set_body({"{'key':'value'}"});
+    response.set_body("{'key':'value'}");
 
-    return std::make_shared<rapid::Response>();
+    return std::make_shared<rapid::Response>(response);
   });
   server.run();
 
