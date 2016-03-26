@@ -1,10 +1,14 @@
 # RAPID
 RAPID is a http server minimal implementation, works in process model and runs only one thread.
 
+I'm going to use in the following scene:
+* a monitor for embedded system
+* a http debugging server for native application on smartphone
+
 # Getting Started
 
 You can get easy way about the HTTP GET request / response handler to the following examples.
-```
+```C++
 #include <cstdlib>
 #include <iostream>
 #include <rapid/rapid.h>
