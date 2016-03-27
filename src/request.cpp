@@ -1,42 +1,75 @@
+#include <rapid/rapid.h>
 #include <algorithm>
 #include <map>
-#include <rapid/rapid.h>
 #include <regex>
 #include <sstream>
+#include <tuple>
 #include <vector>
 
 namespace rapid {
 
-std::vector<std::string> split(const std::string &input) {
-  std::istringstream stream(input);
-  std::string result;
-  std::vector<std::string> results;
-  while (std::getline(stream, result, '\n')) {
-    result.erase(result.size() - 1);
-    results.emplace_back(result);
-  }
-  return std::move(results);
-}
+class Request::Impl {
+ public:
+  using Matcher = struct {
+    std::regex re;
+    std::function<void(std::smatch &)> fn;
+  };
+  using Matchers = std::vector<Matcher>;
 
-Request::Request(const std::string &raw_input) {
-  auto rows = split(raw_input);
+  Impl(Request *owner) : _owner(owner) {}
+  ~Impl() { _owner = nullptr; }
 
-  if (!rows.empty()) {
-    using Matcher = std::map<rapid::Method, std::regex>;
-    Matcher rs = {
-        {rapid::Method::Get, std::regex("^GET (.+) HTTP/\\d\\.\\d$")},
-        {rapid::Method::Post, std::regex("^POST (.+) HTTP/\\d\\.\\d$")},
+  void init_matchers() {
+    _matchers = {
+        {std::regex("^User-Agent: (.+)$"),
+         [&](std::smatch &m) { return _owner->_user_agent = m[1]; }},
+        {std::regex("^GET (.+) HTTP/\\d\\.\\d$"),
+         [&](std::smatch &m) {
+           _owner->_method = rapid::Method::Get;
+           _owner->_request_uri = m[1];
+         }},
+        {std::regex("^POST (.+) HTTP/\\d\\.\\d$"),
+         [&](std::smatch &m) {
+           _owner->_method = rapid::Method::Post;
+           _owner->_request_uri = m[1];
+         }},
     };
-    std::smatch sm;
-
-    std::for_each(rs.begin(), rs.end(), [&](Matcher::value_type &pair) {
-      bool result = std::regex_search(rows[0], sm, pair.second);
-      if (result) {
-        _method = pair.first;
-        _request_uri = sm[1];
-        return;
-      }
-    });
   }
+
+  std::vector<std::string> split(const std::string &input) {
+    std::istringstream stream(input);
+    std::string result;
+    std::vector<std::string> results;
+    while (std::getline(stream, result, '\n')) {
+      result.erase(result.size() - 1);
+      results.emplace_back(result);
+    }
+    return std::move(results);
+  }
+
+  void parse(const std::string &raw_input) {
+    init_matchers();
+    auto rows = split(raw_input);
+
+    if (!rows.empty()) {
+      for (auto &row : rows) {
+        for (auto &matcher : _matchers) {
+          std::smatch match;
+          if (std::regex_match(row, match, matcher.re)) {
+            matcher.fn(match);
+          }
+        }
+      }
+    }
+  }
+
+ private:
+  Request *_owner = nullptr;
+  Matchers _matchers;
+};
+
+Request::Request(const std::string &raw_input) : _impl(new Impl(this)) {
+  _impl->parse(raw_input);
 }
+Request::~Request() {}
 }
