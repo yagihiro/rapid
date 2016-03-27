@@ -5,6 +5,10 @@ I'm going to use in the following scene:
 * a monitor for embedded system
 * a http debugging server for native application on smartphone
 
+# Build Status
+
+[![Build Status](https://travis-ci.org/yagihiro/rapid.svg?branch=master)](https://travis-ci.org/yagihiro/rapid)
+
 # Getting Started
 
 You can get easy way about the HTTP GET request / response handler to the following examples.
@@ -54,3 +58,14 @@ Depends on openssl library, you should install it by HomeBrew.
 ```
 % brew install openssl
 ```
+
+## Linux
+
+Required over GCC 4.9 and CMake. If you build this library, you can refer to the following commands:
+```
+cmake -DCMAKE_CXX_COMPILER=g++-4.9 . && make
+```
+
+# License
+
+MIT License
