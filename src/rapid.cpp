@@ -1,3 +1,4 @@
+#include <arpa/inet.h>
 #include <netinet/in.h>
 #include <rapid/rapid.h>
 #include <sys/socket.h>
@@ -73,7 +74,8 @@ class TlsManager {
     return true;
   }
 
-  bool recv_tls(int peer, const std::function<ResponsePtr(Request &)> &fn) {
+  bool recv_tls(int peer, const std::string &addr, uint16_t port,
+                const std::function<ResponsePtr(Request &)> &fn) {
     if (_ctx == nullptr) {
       return false;
     }
@@ -87,7 +89,7 @@ class TlsManager {
       auto bytes = SSL_read(ssl, buf, sizeof(buf));
       if (0 < bytes) {
         buf[bytes] = 0;
-        Request request(buf);
+        Request request(buf, addr, port);
         auto response = fn(request);
         auto response_s = response->message();
         SSL_write(ssl, response_s->c_str(),
@@ -178,9 +180,13 @@ void Server::dispatch_http_request(int socket) {
   auto len = sizeof(client_addr);
   auto peer =
       accept(socket, (struct sockaddr *)&client_addr, (socklen_t *)&len);
+  char s[INET6_ADDRSTRLEN];
+  auto caddr =
+      inet_ntop(client_addr.sin_family, &client_addr.sin_addr, s, sizeof(s));
+  auto cport = ntohs(client_addr.sin_port);
 
   if (_use_tls) {
-    TlsManager::instance()->recv_tls(peer,
+    TlsManager::instance()->recv_tls(peer, caddr, cport,
                                      [&](Request &request) -> ResponsePtr {
                                        return _dispatcher.dispatch(request);
                                      });
@@ -189,7 +195,7 @@ void Server::dispatch_http_request(int socket) {
     auto inlen = recv(peer, inbuf, sizeof(inbuf), 0);
     inbuf[inlen] = '\0';
 
-    Request request(inbuf);
+    Request request(inbuf, caddr, cport);
     auto response = _dispatcher.dispatch(request);
     auto response_s = response->message();
     write(peer, response_s->c_str(), response_s->size());
