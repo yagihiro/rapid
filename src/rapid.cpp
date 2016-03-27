@@ -168,7 +168,6 @@ void Server::boot() {
     addr.sin_family = AF_INET;
     addr.sin_port = htons(_port);
     addr.sin_addr.s_addr = INADDR_ANY;
-    addr.sin_len = sizeof(addr);
     bind(_sock, (struct sockaddr *)&addr, sizeof(addr));
     listen(_sock, 5);
   }
