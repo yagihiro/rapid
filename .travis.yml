@@ -1,7 +1,7 @@
 language: cpp
 
 compiler:
-  - g++
+  - g++-4.8
 
 os:
   - linux
@@ -15,7 +15,7 @@ install:
   - export CXX="g++-4.8"
 
 script:
-  - g++ --version
+  - g++-4.8 --version
   - cmake .
   - make
   - ./unittest/testrunner
