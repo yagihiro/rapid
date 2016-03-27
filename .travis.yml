@@ -18,4 +18,4 @@ script:
   - g++ --version
   - cmake .
   - make
-  - ./test/testrunner
+  - ./unittest/testrunner
