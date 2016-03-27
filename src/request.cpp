@@ -68,8 +68,13 @@ class Request::Impl {
   Matchers _matchers;
 };
 
-Request::Request(const std::string &raw_input) : _impl(new Impl(this)) {
+Request::Request(const std::string &raw_input) : Request(raw_input, "", 0) {}
+
+Request::Request(const std::string &raw_input, const std::string &address,
+                 uint16_t port)
+    : _impl(new Impl(this)), _client_addr(address), _client_port(port) {
   _impl->parse(raw_input);
 }
+
 Request::~Request() {}
 }
