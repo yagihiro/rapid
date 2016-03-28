@@ -1,6 +1,7 @@
 #pragma once
 #include "handler.h"
 #include "method.h"
+#include "peer.h"
 #include "request.h"
 #include "response.h"
 #include "route.h"
@@ -13,7 +14,7 @@ class Server {
   Server();
   ~Server() = default;
 
-  void set_port(int port);
+  void set_port(uint16_t port);
   void use_tls();
   void set_tls_certificate_path(const std::string &path);
   void set_tls_private_key_path(const std::string &path);
@@ -39,9 +40,9 @@ class Server {
   /** @} */
 
  private:
-  static constexpr int kUndefinedPort = 0;
+  static constexpr uint16_t kUndefinedPort = 0;
 
-  int _port = kUndefinedPort;
+  Peer _peer;
   bool _use_tls = false;
   std::string _cert_path;
   std::string _pk_path;
@@ -53,6 +54,8 @@ class Server {
 
   void boot();
   void dispatch_http_request(int socket);
+  void set_server_peer(struct sockaddr_in *addr);
+  void set_client_peer(struct sockaddr_in *addr);
 
   Server(Server const &) = delete;
   Server &operator=(Server const &) = delete;
