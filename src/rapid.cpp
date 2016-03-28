@@ -74,14 +74,14 @@ class TlsManager {
     return true;
   }
 
-  bool recv_tls(int peer, const std::string &addr, uint16_t port,
+  bool recv_tls(int sock, const Peer &peer,
                 const std::function<ResponsePtr(Request &)> &fn) {
     if (_ctx == nullptr) {
       return false;
     }
 
     SSL *ssl = SSL_new(_ctx);
-    SSL_set_fd(ssl, peer);
+    SSL_set_fd(ssl, sock);
     if (SSL_accept(ssl) == -1) {
       // ...
     } else {
@@ -89,7 +89,7 @@ class TlsManager {
       auto bytes = SSL_read(ssl, buf, sizeof(buf));
       if (0 < bytes) {
         buf[bytes] = 0;
-        Request request(buf, addr, port);
+        Request request(buf, peer);
         auto response = fn(request);
         auto response_s = response->message();
         SSL_write(ssl, response_s->c_str(),
@@ -106,9 +106,9 @@ class TlsManager {
   SSL_CTX *_ctx = nullptr;
 };
 
-Server::Server() {}
+Server::Server() { _peer.server_port = kUndefinedPort; }
 
-void Server::set_port(int port) { _port = port; }
+void Server::set_port(uint16_t port) { _peer.server_port = port; }
 
 void Server::use_tls() { _use_tls = true; }
 
@@ -121,7 +121,7 @@ void Server::set_tls_private_key_path(const std::string &path) {
 }
 
 void Server::run() {
-  assert(_port != kUndefinedPort);
+  assert(_peer.server_port != kUndefinedPort);
 
   auto th = std::thread([&] {
     _stopped = false;
@@ -168,10 +168,12 @@ void Server::boot() {
 
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
-    addr.sin_port = htons(_port);
+    addr.sin_port = htons(_peer.server_port);
     addr.sin_addr.s_addr = INADDR_ANY;
     bind(_sock, (struct sockaddr *)&addr, sizeof(addr));
     listen(_sock, 5);
+
+    set_server_peer(&addr);
   }
 }
 
@@ -180,13 +182,11 @@ void Server::dispatch_http_request(int socket) {
   auto len = sizeof(client_addr);
   auto peer =
       accept(socket, (struct sockaddr *)&client_addr, (socklen_t *)&len);
-  char s[INET6_ADDRSTRLEN];
-  auto caddr =
-      inet_ntop(client_addr.sin_family, &client_addr.sin_addr, s, sizeof(s));
-  auto cport = ntohs(client_addr.sin_port);
+
+  set_client_peer(&client_addr);
 
   if (_use_tls) {
-    TlsManager::instance()->recv_tls(peer, caddr, cport,
+    TlsManager::instance()->recv_tls(peer, _peer,
                                      [&](Request &request) -> ResponsePtr {
                                        return _dispatcher.dispatch(request);
                                      });
@@ -195,11 +195,27 @@ void Server::dispatch_http_request(int socket) {
     auto inlen = recv(peer, inbuf, sizeof(inbuf), 0);
     inbuf[inlen] = '\0';
 
-    Request request(inbuf, caddr, cport);
+    Request request(inbuf, _peer);
     auto response = _dispatcher.dispatch(request);
     auto response_s = response->message();
     write(peer, response_s->c_str(), response_s->size());
   }
   close(peer);
+}
+
+void Server::set_server_peer(struct sockaddr_in *addr) {
+  char tmp[INET6_ADDRSTRLEN];
+
+  _peer.server_addr =
+      inet_ntop(addr->sin_family, &(addr->sin_addr), tmp, sizeof(tmp));
+  _peer.server_port = ntohs(addr->sin_port);
+}
+
+void Server::set_client_peer(struct sockaddr_in *addr) {
+  char tmp[INET6_ADDRSTRLEN];
+
+  _peer.client_addr =
+      inet_ntop(addr->sin_family, &(addr->sin_addr), tmp, sizeof(tmp));
+  _peer.client_port = ntohs(addr->sin_port);
 }
 }

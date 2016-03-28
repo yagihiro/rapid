@@ -1,5 +1,6 @@
 #include <rapid/rapid.h>
 #include <algorithm>
+#include <cctype>
 #include <map>
 #include <regex>
 #include <sstream>
@@ -21,8 +22,19 @@ class Request::Impl {
 
   void init_matchers() {
     _matchers = {
-        {std::regex("^User-Agent: (.+)$"),
-         [&](std::smatch &m) { return _owner->_user_agent = m[1]; }},
+        {std::regex("^([a-zA-Z0-9\\-]+): (.+)$"),
+         [&](std::smatch &m) {
+           std::string key = m[1];
+           std::transform(key.begin(), key.end(), key.begin(),
+                          [&](std::string::value_type c1) {
+                            auto c2 = ::toupper(c1);
+                            if (c2 == '-') {
+                              c2 = '_';
+                            }
+                            return c2;
+                          });
+           _environments[key] = m[2];
+         }},
         {std::regex("^GET (.+) HTTP/\\d\\.\\d$"),
          [&](std::smatch &m) {
            _owner->_method = rapid::Method::Get;
@@ -63,18 +75,35 @@ class Request::Impl {
     }
   }
 
+  const Request::Environments &environments() const { return _environments; }
+
+  void add_additional_environments() { _environments["SERVER_ADDR"]; }
+
  private:
   Request *_owner = nullptr;
   Matchers _matchers;
+  Request::Environments _environments;
 };
 
-Request::Request(const std::string &raw_input) : Request(raw_input, "", 0) {}
+Request::Request(const std::string &raw_input) : Request(raw_input, Peer()) {}
 
-Request::Request(const std::string &raw_input, const std::string &address,
-                 uint16_t port)
-    : _impl(new Impl(this)), _client_addr(address), _client_port(port) {
+Request::Request(const std::string &raw_input, const Peer &peer)
+    : _impl(new Impl(this)), _peer(peer) {
   _impl->parse(raw_input);
+  _impl->add_additional_environments();
 }
 
 Request::~Request() {}
+
+const Request::Environments &Request::environments() const {
+  return _impl->environments();
+}
+
+std::string Request::user_agent() const {
+  try {
+    return environments().at("USER_AGENT");
+  } catch (std::out_of_range &e) {
+    return "";
+  }
+}
 }

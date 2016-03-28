@@ -1,7 +1,9 @@
 #pragma once
+#include <map>
 #include <memory>
 #include <string>
 #include "method.h"
+#include "peer.h"
 
 namespace rapid {
 
@@ -12,6 +14,11 @@ namespace rapid {
  */
 class Request {
  public:
+  /**
+   For cgi environments
+   */
+  using Environments = std::map<std::string, std::string>;
+
   /**
    Constructor with raw input via receiving packets.
 
@@ -24,16 +31,19 @@ class Request {
    client port number.
 
    @param raw_input raw input via receiving packets
-   @param address client address
-   @param port client port
+   @param peer peer data
    */
-  Request(const std::string &raw_input, const std::string &address,
-          uint16_t port);
+  Request(const std::string &raw_input, const Peer &peer);
 
   /**
    Destructor
    */
   ~Request();
+
+  /**
+   Return a reference of environment variables.
+   */
+  const Environments &environments() const;
 
   /**
    Return the HTTP Method
@@ -48,7 +58,7 @@ class Request {
   /**
    Return the USER_AGENT
    */
-  std::string user_agent() const { return _user_agent; }
+  std::string user_agent() const;
 
   /**
    Return the REMOTE_HOST, it has to contain an ip address because RAPID doesn't
@@ -70,6 +80,8 @@ class Request {
   class Impl;
   /** pimpl */
   std::unique_ptr<Impl> _impl;
+
+  Peer _peer;
 
   /** client address string */
   std::string _client_addr;
