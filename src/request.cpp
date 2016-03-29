@@ -39,11 +39,15 @@ class Request::Impl {
          [&](std::smatch &m) {
            _owner->_method = rapid::Method::Get;
            _owner->_request_uri = m[1];
+           _environments["REQUEST_METHOD"] = "GET";
+           _environments["REQUEST_URI"] = m[1];
          }},
         {std::regex("^POST (.+) HTTP/\\d\\.\\d$"),
          [&](std::smatch &m) {
            _owner->_method = rapid::Method::Post;
            _owner->_request_uri = m[1];
+           _environments["REQUEST_METHOD"] = "POST";
+           _environments["REQUEST_URI"] = m[1];
          }},
     };
   }
@@ -77,7 +81,15 @@ class Request::Impl {
 
   const Request::Environments &environments() const { return _environments; }
 
-  void add_additional_environments() { _environments["SERVER_ADDR"]; }
+  void add_additional_environments(const Peer &peer) {
+    _environments["SERVER_SOFTWARE"] =
+        std::string(RAPID_SOFTWARE_NAME "/" RAPID_VERSION);
+    _environments["SERVER_ADDR"] = peer.server_addr;
+    _environments["SERVER_PORT"] = peer.server_port;
+    _environments["SERVER_NAME"] = peer.server_name;
+    _environments["REMOTE_ADDR"] = peer.client_addr;
+    _environments["REMOTE_PORT"] = peer.client_port;
+  }
 
  private:
   Request *_owner = nullptr;
@@ -90,7 +102,7 @@ Request::Request(const std::string &raw_input) : Request(raw_input, Peer()) {}
 Request::Request(const std::string &raw_input, const Peer &peer)
     : _impl(new Impl(this)), _peer(peer) {
   _impl->parse(raw_input);
-  _impl->add_additional_environments();
+  _impl->add_additional_environments(_peer);
 }
 
 Request::~Request() {}

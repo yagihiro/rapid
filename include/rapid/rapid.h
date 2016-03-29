@@ -6,6 +6,7 @@
 #include "response.h"
 #include "route.h"
 #include "routing_dispatcher.h"
+#include "version.h"
 
 namespace rapid {
 
