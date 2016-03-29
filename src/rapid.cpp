@@ -1,4 +1,5 @@
 #include <arpa/inet.h>
+#include <netdb.h>
 #include <netinet/in.h>
 #include <rapid/rapid.h>
 #include <sys/socket.h>
@@ -209,6 +210,14 @@ void Server::set_server_peer(struct sockaddr_in *addr) {
   _peer.server_addr =
       inet_ntop(addr->sin_family, &(addr->sin_addr), tmp, sizeof(tmp));
   _peer.server_port = ntohs(addr->sin_port);
+
+  char hbuf[NI_MAXHOST];
+  char sbuf[NI_MAXSERV];
+
+  if (getnameinfo(reinterpret_cast<sockaddr *>(addr), sizeof(*addr), hbuf,
+                  sizeof(hbuf), sbuf, sizeof(sbuf), NI_NAMEREQD) == 0) {
+    _peer.server_name = hbuf;
+  }
 }
 
 void Server::set_client_peer(struct sockaddr_in *addr) {
