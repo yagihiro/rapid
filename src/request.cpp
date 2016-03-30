@@ -21,12 +21,6 @@ class Request::Impl {
   ~Impl() { _owner = nullptr; }
 
   void init_matchers() {
-    auto set = [&](std::smatch &m, const std::string &method) {
-      _environments["REQUEST_METHOD"] = method;
-      _environments["REQUEST_URI"] = m[1];
-      _environments["SERVER_PROTOCOL"] = m[2];
-    };
-
     _matchers = {
         {std::regex("^([a-zA-Z0-9\\-]+): (.+)$"),
          [&](std::smatch &m) {
@@ -45,13 +39,13 @@ class Request::Impl {
          [&](std::smatch &m) {
            _owner->_method = rapid::Method::Get;
            _owner->_request_uri = m[1];
-           set(m, "GET");
+           set_env_from_request_line(m, "GET");
          }},
         {std::regex("^POST (.+) (HTTP/\\d\\.\\d)$"),
          [&](std::smatch &m) {
            _owner->_method = rapid::Method::Post;
            _owner->_request_uri = m[1];
-           set(m, "POST");
+           set_env_from_request_line(m, "POST");
          }},
     };
   }
@@ -94,7 +88,7 @@ class Request::Impl {
     _environments["SERVER_PORT"] = peer.server_port;
 
     char buf[16];
-    sprintf(buf, "%d", ::time(nullptr));
+    sprintf(buf, "%ld", static_cast<long>(::time(nullptr)));
     _environments["REQUEST_TIME"] = buf;
 
     _environments["REMOTE_ADDR"] = peer.client_addr;
@@ -105,6 +99,12 @@ class Request::Impl {
   Request *_owner = nullptr;
   Matchers _matchers;
   Request::Environments _environments;
+
+  void set_env_from_request_line(std::smatch &m, const std::string &method) {
+    _environments["REQUEST_METHOD"] = method;
+    _environments["REQUEST_URI"] = m[1];
+    _environments["SERVER_PROTOCOL"] = m[2];
+  }
 };
 
 Request::Request(const std::string &raw_input) : Request(raw_input, Peer()) {}
