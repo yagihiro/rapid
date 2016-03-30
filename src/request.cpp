@@ -35,19 +35,17 @@ class Request::Impl {
                           });
            _environments[key] = m[2];
          }},
-        {std::regex("^GET (.+) HTTP/\\d\\.\\d$"),
+        {std::regex("^GET (.+) (HTTP/\\d\\.\\d)$"),
          [&](std::smatch &m) {
            _owner->_method = rapid::Method::Get;
            _owner->_request_uri = m[1];
-           _environments["REQUEST_METHOD"] = "GET";
-           _environments["REQUEST_URI"] = m[1];
+           set_env_from_request_line(m, "GET");
          }},
-        {std::regex("^POST (.+) HTTP/\\d\\.\\d$"),
+        {std::regex("^POST (.+) (HTTP/\\d\\.\\d)$"),
          [&](std::smatch &m) {
            _owner->_method = rapid::Method::Post;
            _owner->_request_uri = m[1];
-           _environments["REQUEST_METHOD"] = "POST";
-           _environments["REQUEST_URI"] = m[1];
+           set_env_from_request_line(m, "POST");
          }},
     };
   }
@@ -82,11 +80,17 @@ class Request::Impl {
   const Request::Environments &environments() const { return _environments; }
 
   void add_additional_environments(const Peer &peer) {
+    _environments["GATEWAY_INTERFACE"] = "CGI/1.1";
+    _environments["SERVER_ADDR"] = peer.server_addr;
+    _environments["SERVER_NAME"] = peer.server_name;
     _environments["SERVER_SOFTWARE"] =
         std::string(RAPID_SOFTWARE_NAME "/" RAPID_VERSION);
-    _environments["SERVER_ADDR"] = peer.server_addr;
     _environments["SERVER_PORT"] = peer.server_port;
-    _environments["SERVER_NAME"] = peer.server_name;
+
+    char buf[16];
+    sprintf(buf, "%ld", static_cast<long>(::time(nullptr)));
+    _environments["REQUEST_TIME"] = buf;
+
     _environments["REMOTE_ADDR"] = peer.client_addr;
     _environments["REMOTE_PORT"] = peer.client_port;
   }
@@ -95,6 +99,12 @@ class Request::Impl {
   Request *_owner = nullptr;
   Matchers _matchers;
   Request::Environments _environments;
+
+  void set_env_from_request_line(std::smatch &m, const std::string &method) {
+    _environments["REQUEST_METHOD"] = method;
+    _environments["REQUEST_URI"] = m[1];
+    _environments["SERVER_PROTOCOL"] = m[2];
+  }
 };
 
 Request::Request(const std::string &raw_input) : Request(raw_input, Peer()) {}
